@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package razorpay;
+
+service RazorpayService {
+  rpc createOrder (OrderRequest) returns (OrderResponse) {}
+  rpc getPaymentType (paymentTypeRequest) returns (paymentTypeResponset) {}
+}
+
+// Hello
+message OrderRequest {
+  string amount = 1;
+  string currency = 2;
+  string receipt = 3;
+}
+
+message OrderResponse {
+  string message = 1;
+  bool error = 2;
+  getOrderId data = 3;
+}
+
+message getOrderId {
+  string orderId = 1;
+}
+
+message paymentTypeRequest {
+  string paymentId = 1;
+}
+
+message paymentTypeResponset {
+  string message = 1;
+  bool error = 2;
+  string data = 3;
+}

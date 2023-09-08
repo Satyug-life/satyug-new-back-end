@@ -1,0 +1,7 @@
+CREATE EVENT `delete_otps` ON SCHEDULE EVERY 10 HOUR_MINUTE  DO UPDATE Users SET otp = null WHERE createdAt < DATE_SUB(NOW(), INTERVAL 10 HOUR_MINUTE)   
+
+CREATE EVENT `delete_otps_auth` ON SCHEDULE EVERY 60 HOUR_MINUTE  DO UPDATE Users SET otp = null, otpCount = 0 WHERE createdAt < DATE_SUB(NOW(), INTERVAL 60 HOUR_MINUTE)   
+
+CREATE EVENT `update_pending_donations` ON SCHEDULE EVERY 5 HOUR_MINUTE  DO UPDATE Donations SET status = 'FAILED' WHERE createdAt < DATE_SUB(NOW(), INTERVAL 5 HOUR_MINUTE) AND razorpayPaymentId IS NULL AND status = 'PENDING'
+
+CREATE EVENT `update_pending_orders` ON SCHEDULE EVERY 5 HOUR_MINUTE  DO UPDATE Orders SET paymentStatus = 'failed' WHERE createdAt < DATE_SUB(NOW(), INTERVAL 5 HOUR_MINUTE) AND razorpayPaymentId IS NULL  
