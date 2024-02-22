@@ -10,6 +10,7 @@ import sequelize, { Op } from "sequelize";
 import { QuizService } from "../admin/quiz/quiz.service";
 import {
   generateOtp,
+  generatePdf,
   generateRandomString32,
   sendEmail,
 } from "../../common/util/Utility";
@@ -18,7 +19,7 @@ import { ARTIVIVE_IMAGE, GAME_TOKEN, OTP_TYPE } from "../../constants/enums";
 const axios = require("axios");
 const Jimp = require("jimp");
 import * as path from "path";
-import {FileService} from '../file/file.service';
+import { FileService } from '../file/file.service';
 const fs = require('fs');
 
 @Injectable()
@@ -185,10 +186,10 @@ export class UsersService {
         assetId,
       };
       console.log("imgData-------", imgData);
-      let s3ImageResp:any;
+      let s3ImageResp: any;
       const imgResp = await this.rewriteImage(imgData);
       console.log("imgResp------", imgResp)
-      if(imgResp?.error){
+      if (imgResp?.error) {
         throw imgResp
       }
       return returnSuccess(
@@ -206,10 +207,10 @@ export class UsersService {
       let fileName = `${data?.assetId}.jpg`;
       let userName = data?.name;
       let userId = data?.assetId;
-      const filePath = path.join(__dirname,'../../assets/images/');     
+      const filePath = path.join(__dirname, '../../assets/images/');
       console.log("loadedImage------------", fileName, userName, userId, ARTIVIVE_IMAGE[data?.srNo], filePath)
       let loadedImage;
-      const imagePath = await Jimp.read(filePath+ARTIVIVE_IMAGE[data?.srNo])
+      const imagePath = await Jimp.read(filePath + ARTIVIVE_IMAGE[data?.srNo])
         .then(function (image) {
           loadedImage = image;
           return Jimp.loadFont(Jimp.FONT_SANS_64_WHITE);
@@ -240,16 +241,16 @@ export class UsersService {
           loadedImage.print(font, 2230, 1920, 'Collective id: ')
           loadedImage.print(font, 2230, 1990, userId)
           loadedImage.resize(3160, 2154).quality(70)
-          loadedImage.write(filePath+fileName);
+          loadedImage.write(filePath + fileName);
           console.log("Image Processing Completed");
-          return filePath+fileName
+          return filePath + fileName
         })
         .catch(function (err) {
           console.error(err);
           this.rewriteImage(data)
-        }); 
-        return returnSuccess(false, 'Image create successfully', imagePath); 
-        
+        });
+      return returnSuccess(false, 'Image create successfully', imagePath);
+
     } catch (error) {
       return returnError(true, error.message);
     }
@@ -494,6 +495,27 @@ export class UsersService {
       return returnSuccess(false, "Karma points add successfully", null);
     } catch (error: any) {
       return returnError(true, error.message);
+    }
+  }
+
+  async generatePdf1(data: any) {
+    try {
+      const pdfResp = await generatePdf(data);
+      if (!pdfResp?.error) {
+        const filePath = pdfResp?.data;
+        if (fs.existsSync(filePath + data?.name)) {
+          console.log("The file exists----1");
+        } else {
+          console.log("The file does not exist-----1");
+          await generatePdf(data);
+        }
+        const s3ImageResp = await this.fileService.uploadUserCollectible(filePath + data?.name, data?.invoiceNo, "application/pdf");
+
+        return s3ImageResp;
+      }
+      return;
+    } catch (error) {
+      console.log("ERROR ----", error)
     }
   }
 }

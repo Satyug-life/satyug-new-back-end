@@ -8,6 +8,17 @@ export class ProductService {
 
   constructor(@Inject("PRODUCT") private product: typeof Product) { }
 
+  async getProductByKey(data) {
+    try {
+      const productData = await this.product.findAll({ where: data, raw: true });
+      if (productData.length == 0) {
+        return returnError(true, 'Product not found');
+      }
+      return returnSuccess(false, 'Products found successfully', productData);
+    } catch (error) {
+      return returnError(true, error?.message, error?.status);
+    }
+  }
 
 
   async getAllProducts(token, type, limit, offset) {
@@ -24,11 +35,11 @@ export class ProductService {
         }
         offset = (offset - 1) * limit;
       }
-      let condition:any = { isDelete: false }
-      if(type != 'all'){
+      let condition: any = { isDelete: false }
+      if (type != 'all') {
         condition = { ...condition, type }
       }
-      if(!token){
+      if (!token) {
         condition = { ...condition, isActive: true, quantity: { [Op.gt]: 0 } }
       }
       const collectData = await this.product.findAndCountAll({
@@ -50,7 +61,7 @@ export class ProductService {
 
   async remove(id) {
     try {
-      const data = await this.updateProduct({ isDelete: true },id);
+      const data = await this.updateProduct({ isDelete: true }, id);
       if (!data) {
         throw returnError(true, 'Something went wrong', {})
       }
